@@ -1,0 +1,109 @@
+import random
+
+# Define the chromatic scale with sharp and flat equivalents
+chromatic_scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+flats_to_sharps = {
+    'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+}
+
+# Define the chord formulas
+chord_formulas = {
+    'M': [0, 4, 7],        # Major triad
+    'm': [0, 3, 7],        # Minor triad
+    'M7': [0, 4, 7, 11],   # Major seventh chord
+    'm7': [0, 3, 7, 10]    # Minor seventh chord
+}
+
+def get_chord_notes(root, chord_type):
+    """
+    Get the notes of a chord based on the root and the chord type.
+    
+    Parameters:
+    root (str): The root note of the chord.
+    chord_type (str): The type of chord (M, m, M7, m7).
+    
+    Returns:
+    list: The notes of the chord.
+    """
+    root_index = chromatic_scale.index(root)
+    formula = chord_formulas[chord_type]
+    chord_notes = [(chromatic_scale[(root_index + interval) % 12]) for interval in formula]
+    return chord_notes
+
+def get_common_tones(chord_notes):
+    """
+    Get the common tones (notes) that the next chord must share.
+    
+    Parameters:
+    chord_notes (list): The notes of the current chord.
+    
+    Returns:
+    list: A list of possible root notes for the next chord.
+    """
+    return list(set(chord_notes))  # Return the unique notes in the current chord
+
+def generate_next_chord(possible_roots, previous_chord_type):
+    """
+    Generate the next chord based on the possible root notes and previous chord type.
+    
+    Parameters:
+    possible_roots (list): List of possible root notes that share common tones with the previous chord.
+    previous_chord_type (str): The type of the previous chord (M, m, M7, m7).
+    
+    Returns:
+    tuple: The next chord (root, type).
+    """
+    next_root = random.choice(possible_roots)  # Choose a random root from the possible roots
+    next_chord_type = random.choice(list(chord_formulas.keys()))  # Randomly choose a chord type
+    return (next_root, next_chord_type)
+
+def generate_chord_progression(starting_chord, length):
+    """
+    Generate a chord progression of a given length.
+    
+    Parameters:
+    starting_chord (tuple): The starting chord (root, type).
+    length (int): The number of chords in the progression.
+    
+    Returns:
+    list: A list of chords forming the progression.
+    """
+    progression = [starting_chord]
+    current_chord_notes = get_chord_notes(starting_chord[0], starting_chord[1])
+
+    for _ in range(length - 1):
+        possible_roots = get_common_tones(current_chord_notes)
+        next_chord = generate_next_chord(possible_roots, starting_chord[1])
+        progression.append(next_chord)
+        current_chord_notes = get_chord_notes(next_chord[0], next_chord[1])
+
+    return progression
+
+def main():
+    try:
+        # Ask the user for input
+        starting_root = input("Enter the root note of the starting chord (e.g., C, D#, Gb): ").strip()
+        starting_type = input("Enter the chord type (M for major, m for minor, M7 for major seventh, m7 for minor seventh): ").strip()
+        length = int(input("Enter the number of chords in the progression: "))
+
+        # Convert flats to sharps
+        if starting_root in flats_to_sharps:
+            starting_root = flats_to_sharps[starting_root]
+        
+        if starting_root not in chromatic_scale or starting_type not in chord_formulas:
+            raise ValueError("Invalid root note or chord type.")
+        
+        # Generate the chord progression
+        starting_chord = (starting_root, starting_type)
+        progression = generate_chord_progression(starting_chord, length)
+
+        # Display the chord progression
+        print("\nGenerated Chord Progression:")
+        for chord in progression:
+            print(f"{chord[0]}{chord[1]}")
+    
+    except ValueError as e:
+        print(e)
+
+if __name__ == "__main__":
+    main()
